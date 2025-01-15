@@ -14,13 +14,14 @@ When I started setting it up I haven't written a line of c++ for about 8 years.
 Whenever I remembered something that made the code better I only applied it from then onwards; 
 I didn't rework the already written code. 
 
+The code is also sparsely commented, which will be improved soon.
+
 Use at your own risk.
 ```
 
 </span>
 
 </div>
-
 
 ## Display Elements
 It has the following elements on screen:
