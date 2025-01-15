@@ -2,9 +2,9 @@
 The code driving my Waveshare E-Paper 7.5" display, as well as the Home Assistant sensors providing the data.
 
  <div style="background-color: #ffcccc; border: 1px solid #ff0000; padding: 10px; border-radius: 5px; text-align: center;">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Warning_icon.svg/1200px-Warning_icon.svg.png" alt="Warning Icon" width="40" style="vertical-align: middle;">
-  <h3 style="margin: 10px 0;">Your Warning Message Goes Here</h3>
-  <p>Fill in your text below this line.</p>
+  <img src="https://e7.pngegg.com/pngimages/290/220/png-clipart-iso-7010-warning-sign-warning-label-hazard-others-angle-label.png" alt="Warning Icon" width="40" style="vertical-align: middle;">
+  <h3 style="margin: 10px 0;">Warning</h3>
+  <p>The esphome code is buggy. When I started setting it up I haven't written a line of c++ for about 8 years. Whenever I remembered something that made the code better I only applied it from then onwards; I didn't rework the already written code. Use at your own risk.</p>
 </div>
 
 
