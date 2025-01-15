@@ -1,0 +1,1229 @@
+# Home Assistant Dashboard for Waveshare E-Ink Display (7.5" v2)
+# Designed by @valterm 2025
+# Display is 640x384 pixels
+
+esphome:
+  name: wshare-eink-driver
+  friendly_name: wshare-eink-driver
+  on_boot:
+    priority: 200
+    then:
+      - lambda: 'id(refresh_display).execute();'
+  includes:
+    - custom_component.h
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: ""
+
+ota:
+  - platform: 
+    password: ""
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  ap:
+    ssid: "Wshare-Eink-Driver"
+    password: "5D7BtxBwMysH"
+
+captive_portal:
+
+
+globals:
+    - id: update
+      type: bool
+      restore_value: no
+      initial_value: 'true'
+    - id: startup
+      type: bool
+      restore_value: no
+      initial_value: 'true'
+    - id: refresh_count
+      type: int
+      restore_value: no
+      initial_value: '0'
+
+script:
+  - id: refresh_display
+    then:
+      - component.update: eink_display
+      - lambda: 'id(refresh_count) += 1;'
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    on_time:
+      - seconds: 0
+        minutes: /1
+        then:
+          # check if anyone is home
+          - if:
+              condition:
+                binary_sensor.is_on: anyone_home
+              then:
+                - if:
+                    condition:
+                      lambda: 'return id(update) == true;'
+                    then:
+                      - lambda: 'id(refresh_display).execute();'
+                      - lambda: 'id(update) = false;'
+
+binary_sensor:
+  - platform: homeassistant
+    entity_id: binary_sensor.anyone_home
+    id: anyone_home
+    on_state:
+      - lambda: 'id(update) = true;'
+  - platform: homeassistant
+    entity_id: binary_sensor.plants_need_watering
+    id: plants_need_watering
+    on_state:
+      - lambda: 'id(update) = true;'
+
+text_sensor:
+  - platform: homeassistant
+    name: "Elara Location"
+    id: elara_location
+    entity_id: device_tracker.elara
+  - platform: homeassistant
+    name: "Vera Location"
+    id: vera_location
+    entity_id: device_tracker.iphone_4
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: today_events_text
+    name: "Today Events"
+    entity_id: input_text.calendar_events_today
+    internal: true
+
+  - platform: homeassistant
+    id: tomorrow_events_text
+    name: "Tomorrow Events"
+    entity_id: input_text.calendar_events_tomorrow
+    internal: true
+
+
+sensor:
+  # Current weather details
+  - platform: homeassistant
+    id: current_temperature
+    entity_id: sensor.current_temperature
+    name: "Current Temperature"
+    unit_of_measurement: "°C"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+    
+  - platform: homeassistant
+    id: current_apparent_temperature
+    entity_id: sensor.current_apparent_temperature
+    name: "Current Apparent Temperature"
+    unit_of_measurement: "°C"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: current_precipitation
+    entity_id: sensor.current_precipitation
+    name: "Current Precipitation"
+    unit_of_measurement: "mm"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: current_wind_speed
+    entity_id: sensor.current_wind_speed
+    name: "Current Wind Speed"
+    unit_of_measurement: "km/h"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: current_weather_code
+    entity_id: sensor.current_weather_code
+    name: "Current Weather Code"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  # Hourly weather forecast sensors
+  # Hourly Forecast Sensors
+  - platform: homeassistant
+    id: next_hour_temperature
+    entity_id: sensor.next_hour_temperature
+    name: "Next Hour Temperature"
+    unit_of_measurement: "°C"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: next_hour_precipitation_probability
+    entity_id: sensor.next_hour_precipitation_probability
+    name: "Next Hour Precipitation Probability"
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: next_hour_weather_code
+    entity_id: sensor.next_hour_weather_code
+    name: "Next Hour Weather Code"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: second_hour_temperature
+    entity_id: sensor.second_hour_temperature
+    name: "Second Hour Temperature"
+    unit_of_measurement: "°C"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: second_hour_precipitation_probability
+    entity_id: sensor.second_hour_precipitation_probability
+    name: "Second Hour Precipitation Probability"
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: second_hour_weather_code
+    entity_id: sensor.second_hour_weather_code
+    name: "Second Hour Weather Code"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: third_hour_temperature
+    entity_id: sensor.third_hour_temperature
+    name: "Third Hour Temperature"
+    unit_of_measurement: "°C"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: third_hour_precipitation_probability
+    entity_id: sensor.third_hour_precipitation_probability
+    name: "Third Hour Precipitation Probability"
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: third_hour_weather_code
+    entity_id: sensor.third_hour_weather_code
+    name: "Third Hour Weather Code"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: fourth_hour_temperature
+    entity_id: sensor.fourth_hour_temperature
+    name: "Fourth Hour Temperature"
+    unit_of_measurement: "°C"
+
+  - platform: homeassistant
+    id: fourth_hour_precipitation_probability
+    entity_id: sensor.fourth_hour_precipitation_probability
+    name: "Fourth Hour Precipitation Probability"
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: fourth_hour_weather_code
+    entity_id: sensor.fourth_hour_weather_code
+    name: "Fourth Hour Weather Code"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: fifth_hour_temperature
+    entity_id: sensor.fifth_hour_temperature
+    name: "Fifth Hour Temperature"
+    unit_of_measurement: "°C"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: fifth_hour_precipitation_probability
+    entity_id: sensor.fifth_hour_precipitation_probability
+    name: "Fifth Hour Precipitation Probability"
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: fifth_hour_weather_code
+    entity_id: sensor.fifth_hour_weather_code
+    name: "Fifth Hour Weather Code"
+
+  - platform: homeassistant
+    id: sixth_hour_temperature
+    entity_id: sensor.sixth_hour_temperature
+    name: "Sixth Hour Temperature"
+    unit_of_measurement: "°C"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: sixth_hour_precipitation_probability
+    entity_id: sensor.sixth_hour_precipitation_probability
+    name: "Sixth Hour Precipitation Probability"
+    unit_of_measurement: "%"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    id: sixth_hour_weather_code
+    entity_id: sensor.sixth_hour_weather_code
+    name: "Sixth Hour Weather Code"
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Next U7 to Rathaus Spandau"
+    entity_id: sensor.minutes_to_next_u7_to_rathaus_spandau
+    id: minutes_to_next_u7_to_rathaus_spandau
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Second U7 to Rathaus Spandau"
+    entity_id: sensor.minutes_to_second_u7_to_rathaus_spandau
+    id: minutes_to_second_u7_to_rathaus_spandau
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Next U7 to Rudow"
+    entity_id: sensor.minutes_to_next_u7_to_rudow
+    id: minutes_to_next_u7_to_rudow
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Second U7 to Rudow"
+    entity_id: sensor.minutes_to_second_u7_to_rudow
+    id: minutes_to_second_u7_to_rudow
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Next S41 (Ring Clockwise)"
+    entity_id: sensor.minutes_to_next_s41_ring_clockwise
+    id: minutes_to_next_s41_ring_clockwise
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Second S41 (Ring Clockwise)"
+    entity_id: sensor.minutes_to_second_s41_ring_clockwise
+    id: minutes_to_second_s41_ring_clockwise
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Next S42 (Ring Counterclockwise)"
+    entity_id: sensor.minutes_to_next_s42_ring_counterclockwise
+    id: minutes_to_next_s42_ring_counterclockwise
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Second S42 (Ring Counterclockwise)"
+    entity_id: sensor.minutes_to_second_s42_ring_counterclockwise
+    id: minutes_to_second_s42_ring_counterclockwise
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Next M45 to Johannesstift"
+    entity_id: sensor.minutes_to_next_m45_to_johannesstift
+    id: minutes_to_next_m45_to_johannesstift
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Second M45 to Johannesstift"
+    entity_id: sensor.minutes_to_second_m45_to_johannesstift
+    id: minutes_to_second_m45_to_johannesstift
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Next M45 to Hertzallee"
+    entity_id: sensor.minutes_to_next_m45_to_hertzallee
+    id: minutes_to_next_m45_to_hertzallee
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  - platform: homeassistant
+    name: "Minutes to Second M45 to Hertzallee"
+    entity_id: sensor.minutes_to_second_m45_to_hertzallee
+    id: minutes_to_second_m45_to_hertzallee
+    on_value:
+      then:
+        - lambda: 'id(update) = true;'
+
+  # - platform: homeassistant
+  #   id: calendar_events_today
+  #   name: "Today Events"
+  #   entity_id: input_text.calendar_events_today
+  #   internal: true
+
+  # - platform: homeassistant
+  #   id: calendar_events_tomorrow
+  #   name: "Tomorrow Events"
+  #   entity_id: input_text.calendar_events_tomorrow
+  #   internal: true 
+
+
+
+spi:
+  clk_pin: GPIO13
+  mosi_pin: GPIO14
+
+display:
+  - platform: waveshare_epaper
+    id: eink_display
+    cs_pin: GPIO15
+    dc_pin: GPIO27
+    busy_pin: 
+      number: GPIO25
+      inverted: true    
+    reset_pin: GPIO26
+    model: 7.50inv2alt
+    update_interval: never
+    lambda: |-
+      #include "custom_component.h"
+
+      std::map<int, std::string> human_readable_weather_code_map = {
+          {0, "Clear Sky"},
+          {1, "Mainly Clear"},
+          {2, "Partly Cloudy"},
+          {3, "Overcast"},
+          {45, "Foggy"},
+          {48, "Depositing Rime Fog"},
+          {51, "Light Drizzle"},
+          {53, "Moderate Drizzle"},
+          {55, "Dense Drizzle"},
+          {56, "Light Freezing Drizzle"},
+          {57, "Dense Freezing Drizzle"},
+          {61, "Slight Rain"},
+          {63, "Moderate Rain"},
+          {65, "Heavy Rain"},
+          {66, "Light Freezing Rain"},
+          {67, "Heavy Freezing Rain"},
+          {71, "Slight Snowfall"},
+          {73, "Moderate Snowfall"},
+          {75, "Heavy Snowfall"},
+          {77, "Snow Grains"},
+          {80, "Slight Rain Showers"},
+          {81, "Moderate Rain Showers"},
+          {82, "Violent Rain Showers"},
+          {85, "Slight Snow Showers"},
+          {86, "Heavy Snow Showers"},
+          {95, "Thunderstorm"},
+          {96, "Thunderstorm with Slight Hail"},
+          {99, "Thunderstorm with Heavy Hail"},
+          {100, "Clear Night"}
+      };
+
+      // Mapping to the (fewer) default weather service status; too lazy to find more icons
+      std::map<int, std::string> weather_code_icon_map = {
+          {0, "\U0000F00D"}, // Clear Sky -> Sunny
+          {1, "\U0000F00D"}, // Mainly Clear -> Sunny
+          {2, "\U0000F031"}, // Partly Cloudy -> Partly Cloudy
+          {3, "\U0000F013"}, // Overcast -> Cloudy
+          {45, "\U0000F014"}, // Fog -> Fog
+          {48, "\U0000F014"}, // Depositing Rime Fog -> Fog
+          {51, "\U0000F01A"}, // Light Drizzle -> Rainy
+          {53, "\U0000F01A"}, // Moderate Drizzle -> Rainy
+          {55, "\U0000F01A"}, // Dense Drizzle -> Rainy
+          {56, "\U0000F01A"}, // Light Freezing Drizzle -> Rainy
+          {57, "\U0000F01A"}, // Dense Freezing Drizzle -> Rainy
+          {61, "\U0000F01A"}, // Slight Rain -> Rainy
+          {63, "\U0000F019"}, // Moderate Rain -> Pouring
+          {65, "\U0000F019"}, // Heavy Rain -> Pouring
+          {66, "\U0000F01A"}, // Light Freezing Rain -> Rainy
+          {67, "\U0000F019"}, // Heavy Freezing Rain -> Pouring
+          {71, "\U0000F076"}, // Slight Snowfall -> Snowy
+          {73, "\U0000F076"}, // Moderate Snowfall -> Snowy
+          {75, "\U0000F076"}, // Heavy Snowfall -> Snowy
+          {77, "\U0000F076"}, // Snow Grains -> Snowy
+          {80, "\U0000F01A"}, // Slight Rain Showers -> Rainy
+          {81, "\U0000F019"}, // Moderate Rain Showers -> Pouring
+          {82, "\U0000F019"}, // Violent Rain Showers -> Pouring
+          {85, "\U0000F076"}, // Slight Snow Showers -> Snowy
+          {86, "\U0000F076"}, // Heavy Snow Showers -> Snowy
+          {95, "\U0000F016"}, // Thunderstorm -> Lightning
+          {96, "\U0000F01D"}, // Thunderstorm with Slight Hail -> Lightning-Rainy
+          {99, "\U0000F01D"},  // Thunderstorm with Heavy Hail -> Lightning-Rainy
+          {100, "\U0000F02E"} // Clear Night -> Clear Night
+        };
+
+      it.printf((it.get_width() - (strlen("Charlottenbur Crime") * 16)) / 2, 5, id(title_font), "Charlottenburger Crime");
+
+      // Global positioning and sizing variables
+
+      int display_width = it.get_width();
+      int display_height = it.get_height();
+      
+      int display_margin = 5;
+      int box_margin = 5;
+      
+      int title_margin = 50;
+
+      int top_row_card_height = 80;
+      int person_card_width = 170;
+
+      int box_inner_margin = 5;
+
+      // Left side
+
+      // Top Row
+
+      // Martin
+      int box_x_martin = display_margin;
+      int box_y_martin = title_margin;
+      int martin_box_width = person_card_width;
+      int martin_box_height = top_row_card_height;
+
+      // Vera
+      int box_x_vera = martin_box_width + box_margin + display_margin;
+      int box_y_vera = title_margin;
+      int vera_box_width = person_card_width;
+      int vera_box_height = top_row_card_height;
+
+      // Plants Box
+      int box_x_plants = martin_box_width + vera_box_width + (box_margin * 2) + display_margin;
+      int box_y_plants = title_margin;
+      int plants_box_width = ((display_width - (display_margin * 2))*0.65) - vera_box_width - martin_box_width - (box_margin * 2);
+      int plants_box_height = top_row_card_height;
+
+      // Second Row
+
+      // Weather
+      int box_x_weather = display_margin;
+      int box_y_weather = title_margin + top_row_card_height + box_margin;
+      int weather_box_width = (display_width - (display_margin * 2))*0.65;
+      int weather_box_height = display_height - (title_margin + top_row_card_height + display_margin + box_margin);
+
+      // Right side
+
+      // Top Row
+
+      // Calendar box
+      int box_x_calendar = display_margin + martin_box_width + vera_box_width + plants_box_width + (box_margin * 3);
+      int box_y_calendar = title_margin;
+      int calendar_box_width = (display_width - (display_margin * 2)) - (martin_box_width + vera_box_width + plants_box_width + (box_margin * 4));
+      int calendar_box_height = (display_height - (title_margin + (display_margin*2)))*0.4;
+
+      // Bottom Row
+
+      // Public transport box
+      int box_x_transport = display_margin + martin_box_width + vera_box_width + plants_box_width + (box_margin * 3);
+      int box_y_transport = title_margin + calendar_box_height + box_margin;
+      int transport_box_width = (display_width - (display_margin * 2)) - (martin_box_width + vera_box_width + plants_box_width + (box_margin * 4));
+      int transport_box_height = (display_height - (title_margin + (display_margin*2)))*0.6;
+
+
+
+      // Draw the boxes
+
+      // Draw Martin's box
+      it.rectangle(box_x_martin, box_y_martin, martin_box_width, martin_box_height);
+
+      // Draw Vera's box
+      it.rectangle(box_x_vera, box_y_vera, vera_box_width, vera_box_height);
+
+      // Draw Plants box
+      it.rectangle(box_x_plants, box_y_plants, plants_box_width, plants_box_height);
+
+      // Draw Weather box
+      it.rectangle(box_x_weather, box_y_weather, weather_box_width, weather_box_height);
+
+      // Draw Calendar box
+      it.rectangle(box_x_calendar, box_y_calendar, calendar_box_width, calendar_box_height);
+
+      // Draw Public Transport box
+      it.rectangle(box_x_transport, box_y_transport, transport_box_width, transport_box_height);
+      
+      // Draw the contents of the person cards
+
+      // Draw Martin's image
+      it.image(box_x_martin + box_inner_margin, box_y_martin + box_inner_margin, id(martin_image));
+      it.printf(box_x_martin + 75, box_y_martin + 10, id(name_text_font), "Martin");
+      
+      if (id(elara_location).state != "") {
+        it.printf(box_x_martin + 75, box_y_martin + 40, id(location_text_font), "%s", id(elara_location).state.c_str());
+      } else {
+        it.printf(box_x_martin + 75, box_y_martin + 40, id(location_text_font), "Unknown");
+      }
+      
+      // Draw Vera's image
+      it.image(box_x_vera + box_inner_margin, box_y_vera + box_inner_margin, id(vera_image));
+      it.printf(box_x_vera + 75, box_y_vera + 10, id(name_text_font), "Vera");
+
+      if (id(vera_location).state != "") {
+        it.printf(box_x_vera + 75, box_y_vera + 40, id(location_text_font), "%s", id(vera_location).state.c_str());
+      } else {
+        it.printf(box_x_vera + 75, box_y_vera + 40, id(location_text_font), "Unknown");
+      }
+
+      // Draw the contents of the plants box
+      // Draw the plant image on the left side
+      it.image(box_x_plants + box_inner_margin + 10, box_y_plants + box_inner_margin + 10, id(plants_image));
+
+      if (id(plants_need_watering).state != 1) {
+        it.printf(box_x_plants + 75, box_y_plants + 30, id(plants_font), "Thirsty");
+      } else {
+        it.printf(box_x_plants + 75, box_y_plants + 30, id(plants_font), "Happy");
+      }      
+
+
+      /////////////////////////////////////////////////////////// 
+      // Calendar Box
+
+      
+      auto format_time = [](const std::string &datetime) -> std::string {
+        size_t time_start = datetime.find("T") + 1;
+        return datetime.substr(time_start, 5);  // Extract HH:mm
+      };
+
+      int calendar_origin_x = box_x_calendar + box_inner_margin + 15;
+      int calendar_origin_y = box_y_calendar + box_inner_margin;
+
+      int calendar_y = calendar_origin_y;
+      int calendar_y_offset = 20;
+
+      // Retrieve the events for today
+      std::string today_events = id(today_events_text).state;
+      std::vector<std::string> today_events_list = split(today_events, "\n");
+
+      // Check if the event list is empty or has one empty element
+      int today_events_count = today_events_list.size();
+      if (today_events_count == 1) {
+        std::vector<std::string> event = split(today_events_list[0], ",");
+        if (event.size() == 1) {
+          today_events_count = 0;
+        }
+      }
+
+      // Print "Today"
+      it.printf(calendar_origin_x - 15, calendar_y, id(calendar_day_font), "Today");
+      calendar_y += calendar_y_offset;
+      
+
+      if (today_events_count == 0) {
+          // If no events, display the sun icon
+          it.printf(calendar_origin_x + 90, calendar_y, id(calendar_icons_font), "\U0000F00D");
+          calendar_y += calendar_y_offset;
+
+          // Display "Nothing more to do today!" message
+          it.printf(calendar_origin_x + 27, calendar_y, id(calendar_event_font), "No more events today!");
+          calendar_y += calendar_y_offset * 2;
+
+      } else {
+          // Calculate the position for the flag and event count (right-aligned)
+          int flag_position_x = box_x_calendar + calendar_box_width - box_inner_margin - 30;
+          int count_position_x = flag_position_x - 30;
+
+          // Print the flag
+          it.printf(flag_position_x, calendar_origin_y-2, id(calendar_icons_font), "\U0000F0CC");
+
+          // Display the event count next to the flag
+          it.printf(count_position_x+39, calendar_origin_y, id(calendar_day_font), "%d", today_events_count);
+
+          // Display up to 3 events
+          int offset = 3;
+          for (int i = 0; i < std::min(3, today_events_count); i++) {
+              std::vector<std::string> event = split(today_events_list[i], ",");
+              if (event.size() >= 3) {
+                  std::string start_time = format_time(event[1]);
+                  std::string end_time = format_time(event[2]);
+                  it.printf(calendar_origin_x, calendar_y, id(calendar_event_font), "%-15s %s - %s", event[0].c_str(), start_time.c_str(), end_time.c_str());  
+                  calendar_y += calendar_y_offset;
+                  offset--;                
+              }
+          }
+          calendar_y += calendar_y_offset * offset;
+      }
+
+      // Retrieve the events for tomorrow
+      std::string tomorrow_events = id(tomorrow_events_text).state;
+      std::vector<std::string> tomorrow_events_list = split(tomorrow_events, "\n");
+
+      // Check if the event list is empty or has one empty element
+      int tomorrow_events_count = tomorrow_events_list.size();
+      if (tomorrow_events_count == 1) {
+        std::vector<std::string> event = split(tomorrow_events_list[0], ",");
+        if (event.size() == 1) {
+          tomorrow_events_count = 0;
+        }
+      }
+
+      // Print "Tomorrow"
+      it.printf(calendar_origin_x - 15, calendar_y, id(calendar_day_font), "Tomorrow");
+      calendar_y += calendar_y_offset;
+
+      if (tomorrow_events_count == 0) {
+          // If no events, display the sun icon
+          it.printf(calendar_origin_x + 90, calendar_y, id(calendar_icons_font), "\U0000F00D");
+          calendar_y += calendar_y_offset;
+
+          // Display "Nothing more to do tomorrow!" message
+          it.printf(calendar_origin_x + 27, calendar_y, id(calendar_event_font), "No events tomorrow!");
+          calendar_y += calendar_y_offset * 2;
+
+      } else {
+          // Calculate the position for the flag and event count (right-aligned)
+          int flag_position_x = box_x_calendar + calendar_box_width - box_inner_margin - 30;
+          int count_position_x = flag_position_x - 30;
+
+          // Print the flag
+          it.printf(flag_position_x, calendar_y-2, id(calendar_icons_font), "\U0000F0CC");
+
+          // Display the event count next to the flag
+          it.printf(count_position_x+39, calendar_y, id(calendar_day_font), "%d", tomorrow_events_count);
+
+          // Display up to 3 events
+          int offset = 3;
+          for (int i = 0; i < std::min(3, tomorrow_events_count); i++) {
+              std::vector<std::string> event = split(tomorrow_events_list[i], ",");
+              if (event.size() >= 3) {
+                  std::string start_time = format_time(event[1]);
+                  std::string end_time = format_time(event[2]);
+                  it.printf(calendar_origin_x, calendar_y, id(calendar_event_font), "%-15s %s - %s", event[0].c_str(), start_time.c_str(), end_time.c_str());  
+                  calendar_y += calendar_y_offset;
+                  offset--;                
+              }
+          }
+          calendar_y += calendar_y_offset * offset;
+      }
+
+
+
+      /////////////////////////////////////////////////////////// 
+      // Public Transport Box
+
+      int transport_origin_x = box_x_transport + box_inner_margin + 20;
+      int transport_origin_y = box_y_transport + box_inner_margin;
+
+      int transport_image_x = transport_origin_x - 15;
+
+      int transport_y = transport_origin_y;
+      int transport_y_offset = 18;
+
+      it.image(transport_image_x, transport_y + 17, id(ubahn_image));
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "U7 Rudow"
+      );
+      it.printf(
+        transport_origin_x + 150, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_next_u7_to_rudow).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_next_u7_to_rudow).state) + "'").c_str()
+      );
+
+      transport_y += transport_y_offset;
+
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "U7 Rudow"
+      );
+      it.printf(
+        transport_origin_x + 150, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_second_u7_to_rudow).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_second_u7_to_rudow).state) + "'").c_str()
+      );
+
+      transport_y += (transport_y_offset * 1.2);
+
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "U7 Rathaus Spandau"
+      );
+      it.printf(
+        transport_origin_x + 210, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_next_u7_to_rathaus_spandau).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_next_u7_to_rathaus_spandau).state) + "'").c_str()
+      );
+
+      transport_y += transport_y_offset;
+
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "U7 Rathaus Spandau"
+      );
+      it.printf(
+        transport_origin_x + 210, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_second_u7_to_rathaus_spandau).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_second_u7_to_rathaus_spandau).state) + "'").c_str()
+      );
+
+      transport_y += (transport_y_offset * 1.2);
+
+      it.image(transport_image_x, transport_y + 17, id(sbahn_image));
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "S41 Ring"
+      );
+      it.printf(
+        transport_origin_x + 130, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_next_s41_ring_clockwise).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_next_s41_ring_clockwise).state) + "'").c_str()
+      );
+
+      transport_y += transport_y_offset;
+
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "S41 Ring"
+      );
+      it.printf(
+        transport_origin_x + 130, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_second_s41_ring_clockwise).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_second_s41_ring_clockwise).state) + "'").c_str()
+      );
+
+      transport_y += (transport_y_offset * 1.2);
+
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "S42 Ring"
+      );
+      it.printf(
+        transport_origin_x + 130, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_next_s42_ring_counterclockwise).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_next_s42_ring_counterclockwise).state) + "'").c_str()
+      );
+
+      transport_y += transport_y_offset;
+
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "S42 Ring"
+      );
+      it.printf(
+        transport_origin_x + 130, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_second_s42_ring_counterclockwise).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_second_s42_ring_counterclockwise).state) + "'").c_str()
+      );
+
+      transport_y += (transport_y_offset * 1.2);
+
+      it.image(transport_image_x, transport_y + 17, id(bus_image));
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "M45 Johannesstift"
+      );
+      it.printf(
+        transport_origin_x + 200, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_next_m45_to_johannesstift).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_next_m45_to_johannesstift).state) + "'").c_str()
+      );
+
+      transport_y += transport_y_offset;
+
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "M45 Johannesstift"
+      );
+      it.printf(
+        transport_origin_x + 200, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_second_m45_to_johannesstift).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_second_m45_to_johannesstift).state) + "'").c_str()
+      );
+
+      transport_y += (transport_y_offset * 1.2);
+
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "M45 Hertzallee"
+      );
+      it.printf(
+        transport_origin_x + 170, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_next_m45_to_hertzallee).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_next_m45_to_hertzallee).state) + "'").c_str()
+      );
+
+      transport_y += transport_y_offset;
+
+      it.printf(
+        transport_origin_x + 50, transport_y, id(transport_small_font), "M45 Hertzallee"
+      );
+      it.printf(
+        transport_origin_x + 170, transport_y, id(transport_small_font),
+        ((int)id(minutes_to_second_m45_to_hertzallee).state == 2147483647) ? "1h+" : (std::to_string((int)id(minutes_to_second_m45_to_hertzallee).state) + "'").c_str()
+      );
+    
+
+      ///////////////////////////////////////////////////////////
+
+
+
+      auto now = id(homeassistant_time).now();
+      now.hour = (now.hour + 1) % 24;
+
+
+      // Weather contents
+      if (isnan(id(current_temperature).state)) {
+        it.printf(
+          box_x_weather + (weather_box_width - (strlen("Weather Loading...") * 15)) / 2,
+          box_y_weather + (weather_box_height / 2) - 27,
+          id(small_weather_glyphs),
+          "\U0000F00D\U00000020\U0000F013\U00000020\U0000F01A\U00000020\U0000F02E"
+        );
+
+      } else {
+        // If the current weather code is 0 and the current time is between 6pm and 6am, set the weather code to 100 (clear night)
+        // Done to display the moon icon instead of the sun icon
+        if ((now.hour >= 18 || now.hour <= 6) && (id(current_weather_code).state == 0 || id(current_weather_code).state == 1)) {
+          id(current_weather_code).publish_state(100);
+        }
+
+
+        int origin_weather_x = box_x_weather + box_inner_margin;
+        int origin_weather_y = box_y_weather + box_inner_margin - 30;
+
+        // Draw current weather icon
+        int weather_icon_x = origin_weather_x + 10;
+        int weather_icon_y = origin_weather_y + 10;
+        it.printf(weather_icon_x, weather_icon_y, id(large_weather_glyphs), "%s", weather_code_icon_map[id(current_weather_code).state].c_str());
+
+        // Draw current temperature
+        int current_temperature_x = weather_icon_x + 230;
+        int current_temperature_y = weather_icon_y + 60;
+        it.printf(current_temperature_x, current_temperature_y, id(weather_current_font), "%.1f°C", id(current_temperature).state);
+
+        // Draw "Feels like" text
+        int feels_like_x = current_temperature_x;
+        int feels_like_y = current_temperature_y + 57;
+        it.printf(feels_like_x, feels_like_y, id(weather_feelslike_font), "Feels like %.1f°C", id(current_apparent_temperature).state);
+
+        // Draw current weather description
+        int weather_description_x = current_temperature_x;
+        int weather_description_y = feels_like_y + 20;
+        it.printf(weather_description_x, weather_description_y, id(weather_description_font), "%s", human_readable_weather_code_map[id(current_weather_code).state].c_str());
+
+        // Draw current precipitation and wind details
+        int weather_details_x = current_temperature_x;
+        int weather_details_y = weather_description_y + 45;
+
+        // Draw mini weather icon for wind
+        int wind_icon_x = weather_details_x;
+        int wind_icon_y = weather_details_y;
+        it.printf(wind_icon_x, wind_icon_y, id(mini_weather_glyphs), "\U0000F050");
+        it.printf(wind_icon_x + 27, wind_icon_y + 2, id(weather_details_font), "%.1f km/h", id(current_wind_speed).state);
+        
+        // Draw mini weather icon for precipitation
+        int precipitation_icon_x = wind_icon_x + 112;
+        int precipitation_icon_y = wind_icon_y;
+        it.printf(precipitation_icon_x, precipitation_icon_y, id(mini_weather_glyphs), "\U0000F078");
+        it.printf(precipitation_icon_x + 22, precipitation_icon_y + 2, id(weather_details_font), "%.1f mm", id(current_precipitation).state);
+        
+
+        // Display 6 hour forecast
+
+        if (now.hour + 1 >= 18 || now.hour + 1 <= 6) {
+          if (id(next_hour_weather_code).state == 0 || id(next_hour_weather_code).state == 1) {
+            id(next_hour_weather_code).publish_state(100);
+          }
+        }
+        if (now.hour + 2 >= 18 || now.hour + 2 <= 6) {
+          if (id(second_hour_weather_code).state == 0 || id(second_hour_weather_code).state == 1) {
+            id(second_hour_weather_code).publish_state(100);
+          }
+        }
+        if (now.hour + 3 >= 18 || now.hour + 3 <= 6) {
+          if (id(third_hour_weather_code).state == 0 || id(third_hour_weather_code).state == 1) {
+            id(third_hour_weather_code).publish_state(100);
+          }
+        }
+        if (now.hour + 4 >= 18 || now.hour + 4 <= 6) {
+          if (id(fourth_hour_weather_code).state == 0 || id(fourth_hour_weather_code).state == 1) {
+            id(fourth_hour_weather_code).publish_state(100);
+          }
+        }
+        if (now.hour + 5 >= 18 || now.hour + 5 <= 6) {
+          if (id(fifth_hour_weather_code).state == 0 || id(fifth_hour_weather_code).state == 1) {
+            id(fifth_hour_weather_code).publish_state(100);
+          }
+        }
+        if (now.hour + 6 >= 18 || now.hour + 6 <= 6) {
+          if (id(sixth_hour_weather_code).state == 0 || id(sixth_hour_weather_code).state == 1) {
+            id(sixth_hour_weather_code).publish_state(100);
+          }
+        }
+
+
+        // Print the 6 hours
+
+        int forecast_x = origin_weather_x + 30;
+        int forecast_y = weather_icon_y + 225;
+
+        int hour_display_x = forecast_x;
+        int hour_display_y = forecast_y;
+        int time_display_offset = 82;
+
+        it.printf(forecast_x, forecast_y, id(weather_forecast_time_font), "%02d:00", now.hour + 1);
+        
+        for (int i = 1; i < 7 ; i++) {            
+            if (now.hour + i >= 24) {
+              it.printf(hour_display_x, hour_display_y, id(weather_forecast_time_font), "%02d:00", now.hour + i - 24);
+            } else {
+              it.printf(hour_display_x, hour_display_y, id(weather_forecast_time_font), "%02d:00", now.hour + i);
+            }
+            hour_display_x += time_display_offset;
+        }
+
+        // Print the weather icons
+        int icon_display_x = forecast_x;
+        int icon_display_y = forecast_y + 15;
+        int icon_display_offset = 80;
+
+        it.printf(icon_display_x, icon_display_y, id(small_weather_glyphs), "%s", weather_code_icon_map[id(next_hour_weather_code).state].c_str());
+        icon_display_x += icon_display_offset;
+        it.printf(icon_display_x, icon_display_y, id(small_weather_glyphs), "%s", weather_code_icon_map[id(second_hour_weather_code).state].c_str());
+        icon_display_x += icon_display_offset;
+        it.printf(icon_display_x, icon_display_y, id(small_weather_glyphs), "%s", weather_code_icon_map[id(third_hour_weather_code).state].c_str());
+        icon_display_x += icon_display_offset;
+        it.printf(icon_display_x, icon_display_y, id(small_weather_glyphs), "%s", weather_code_icon_map[id(fourth_hour_weather_code).state].c_str());
+        icon_display_x += icon_display_offset;
+        it.printf(icon_display_x, icon_display_y, id(small_weather_glyphs), "%s", weather_code_icon_map[id(fifth_hour_weather_code).state].c_str());
+        icon_display_x += icon_display_offset;
+        it.printf(icon_display_x, icon_display_y, id(small_weather_glyphs), "%s", weather_code_icon_map[id(sixth_hour_weather_code).state].c_str());
+
+        // Print the temperatures
+        int temperature_display_x = forecast_x;
+        int temperature_display_y = forecast_y + 85;
+        int temperature_display_offset = 80;
+
+        it.printf(temperature_display_x, temperature_display_y, id(weather_forecast_font), "%.1f°C", id(next_hour_temperature).state);
+        temperature_display_x += temperature_display_offset;
+        it.printf(temperature_display_x, temperature_display_y, id(weather_forecast_font), "%.1f°C", id(second_hour_temperature).state);
+        temperature_display_x += temperature_display_offset;
+        it.printf(temperature_display_x, temperature_display_y, id(weather_forecast_font), "%.1f°C", id(third_hour_temperature).state);
+        temperature_display_x += temperature_display_offset;
+        it.printf(temperature_display_x, temperature_display_y, id(weather_forecast_font), "%.1f°C", id(fourth_hour_temperature).state);
+        temperature_display_x += temperature_display_offset;
+        it.printf(temperature_display_x, temperature_display_y, id(weather_forecast_font), "%.1f°C", id(fifth_hour_temperature).state);
+        temperature_display_x += temperature_display_offset;
+        it.printf(temperature_display_x, temperature_display_y, id(weather_forecast_font), "%.1f°C", id(sixth_hour_temperature).state);
+
+
+        // Print the precipitation probabilities
+        int precipitation_display_x = forecast_x + 15;
+        int precipitation_display_y = temperature_display_y + 20;
+
+        it.printf(precipitation_display_x, precipitation_display_y, id(weather_forecast_font_small), "%.1f%%", id(next_hour_precipitation_probability).state);
+        precipitation_display_x += temperature_display_offset;
+        it.printf(precipitation_display_x, precipitation_display_y, id(weather_forecast_font_small), "%.1f%%", id(second_hour_precipitation_probability).state);
+        precipitation_display_x += temperature_display_offset;
+        it.printf(precipitation_display_x, precipitation_display_y, id(weather_forecast_font_small), "%.1f%%", id(third_hour_precipitation_probability).state);
+        precipitation_display_x += temperature_display_offset;
+        it.printf(precipitation_display_x, precipitation_display_y, id(weather_forecast_font_small), "%.1f%%", id(fourth_hour_precipitation_probability).state);
+        precipitation_display_x += temperature_display_offset;
+        it.printf(precipitation_display_x, precipitation_display_y, id(weather_forecast_font_small), "%.1f%%", id(fifth_hour_precipitation_probability).state);
+        precipitation_display_x += temperature_display_offset;
+        it.printf(precipitation_display_x, precipitation_display_y, id(weather_forecast_font_small), "%.1f%%", id(sixth_hour_precipitation_probability).state);
+
+      }
+        
+
+font:
+  - file: "fonts/Roboto-Bold.ttf"
+    id: title_font
+    size: 32
+
+  - file: "fonts/Roboto-Regular.ttf"
+    id: text_font
+    size: 24
+
+  - file: "fonts/Roboto-Regular.ttf"
+    id: large_text_font
+    size: 32
+
+  - file: "fonts/Roboto-Bold.ttf"
+    id: name_text_font
+    size: 24
+
+  - file: "fonts/Roboto-Regular.ttf"
+    id: location_text_font
+    size: 20
+
+  - file: "fonts/Roboto-Bold.ttf"
+    id: weather_current_font
+    size: 56  # Large size for current temperature
+  - file: "fonts/Roboto-Regular.ttf"
+    id: weather_feelslike_font
+    size: 20  # Medium size for "Feels like"
+  - file: "fonts/Roboto-Regular.ttf"
+    id: weather_description_font
+    size: 40  # Medium/large size for description
+  - file: "fonts/Roboto-Regular.ttf"
+    id: weather_details_font
+    size: 18  # Smaller size for precipitation and wind details
+  - file: "fonts/Roboto-Bold.ttf"
+    id: weather_forecast_time_font
+    size: 14  # Time above hourly forecast icons
+  - file: "fonts/Roboto-Regular.ttf"
+    id: weather_forecast_font
+    size: 16  # Small size for forecast temperature and precipitation details
+  - file: "fonts/Roboto-Regular.ttf"
+    id: weather_forecast_font_small
+    size: 14  # Smaller size for forecast temperature and precipitation details
+
+  - file: "fonts/Roboto-Bold.ttf"
+    id: plants_font
+    size: 24
+
+  - file: "fonts/Roboto-Bold.ttf"
+    id: transport_large_font
+    size: 24
+  
+  - file: "fonts/Roboto-Regular.ttf"
+    id: transport_small_font
+    size: 16
+
+  - file: "fonts/Roboto-Bold.ttf"
+    id: calendar_day_font
+    size: 20
+
+  - file: "fonts/Roboto-Regular.ttf"
+    id: calendar_event_font
+    size: 16
+  
+  - file: "fonts/weathericons-regular-webfont.ttf"
+    id: large_weather_glyphs
+    size: 172
+    glyphs:
+      - "\U0000F02E" # clear night
+      - "\U0000F013" # cloudy
+      - "\U0000F014" # fog
+      - "\U0000F018" # hail
+      - "\U0000F016" # lightning
+      - "\U0000F01D" # lightning-rainy
+      - "\U0000F031" # partlycloudy
+      - "\U0000F019" # pouring
+      - "\U0000F01A" # rainy
+      - "\U0000F076" # snowy
+      - "\U0000F017" # snowy-rainy
+      - "\U0000F00D" # sunny
+      - "\U0000F050" # windy
+      - "\U0000F011" # windy-cloudy
+      - "\U0000F077" # exceptional
+      - "\U0000F078" # precipitation
+      - "\U00000020" # whitespace
+
+  - file: "fonts/weathericons-regular-webfont.ttf"
+    id: small_weather_glyphs
+    size: 52
+    glyphs:
+      - "\U0000F02E" # clear night
+      - "\U0000F013" # cloudy
+      - "\U0000F014" # fog
+      - "\U0000F018" # hail
+      - "\U0000F016" # lightning
+      - "\U0000F01D" # lightning-rainy
+      - "\U0000F031" # partlycloudy
+      - "\U0000F019" # pouring
+      - "\U0000F01A" # rainy
+      - "\U0000F076" # snowy
+      - "\U0000F017" # snowy-rainy
+      - "\U0000F00D" # sunny
+      - "\U0000F050" # windy
+      - "\U0000F011" # windy-cloudy
+      - "\U0000F077" # exceptional
+      - "\U0000F078" # precipitation
+      - "\U00000020" # whitespace
+
+  - file: "fonts/weathericons-regular-webfont.ttf"
+    id: mini_weather_glyphs
+    size: 12
+    glyphs:
+      - "\U0000F02E" # clear night
+      - "\U0000F013" # cloudy
+      - "\U0000F014" # fog
+      - "\U0000F018" # hail
+      - "\U0000F016" # lightning
+      - "\U0000F01D" # lightning-rainy
+      - "\U0000F031" # partlycloudy
+      - "\U0000F019" # pouring
+      - "\U0000F01A" # rainy
+      - "\U0000F076" # snowy
+      - "\U0000F017" # snowy-rainy
+      - "\U0000F00D" # sunny
+      - "\U0000F050" # windy
+      - "\U0000F011" # windy-cloudy
+      - "\U0000F077" # exceptional
+      - "\U0000F078" # precipitation
+      - "\U00000020" # whitespace
+      - "\U0000F0CC" # flag
+
+  - file: "fonts/weathericons-regular-webfont.ttf"
+    id: calendar_icons_font
+    size: 18
+    glyphs:
+      - "\U0000F0CC" # flag
+      - "\U0000F00D" # sunny
+image:
+  - file: "img/qr.bmp"
+    id: qr_code_image
+    type: BINARY
+    # 75x74 px image
+
+  - file: "img/martin.bmp"
+    id: martin_image
+    type: BINARY
+    # 70x70
+
+  - file: "img/vera.bmp"
+    id: vera_image
+    type: BINARY
+    # 70x70
+
+  - file: "img/plant.bmp"
+    id: plants_image
+    type: BINARY
+    # 50x50
+
+  - file: "img/bus.bmp"
+    id: bus_image
+    type: BINARY
+    # 15x15
+  - file: "img/sbahn.bmp"
+    id: sbahn_image
+    type: BINARY
+    # 15x15
+  - file: "img/ubahn.bmp"
+    id: ubahn_image
+    type: BINARY
+    # 15x15
+  
