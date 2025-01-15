@@ -3,11 +3,15 @@ The code driving my Waveshare E-Paper 7.5" display, as well as the Home Assistan
 
 <div align="center">
 
-![Warning](https://via.placeholder.com/24x24/FF0000/FFFFFF?text=!)
+![Warning](https://e7.pngegg.com/pngimages/290/220/png-clipart-iso-7010-warning-sign-warning-label-hazard-others-angle-label.png)
 <span style="color: white; background-color: #FF0000; display: inline-block; padding: 10px 20px; border-radius: 5px; font-weight: bold; font-size: 1.2em;">
 
 ```diff
-The esphome code is buggy. When I started setting it up I haven't written a line of c++ for about 8 years. Whenever I remembered something that made the code better I only applied it from then onwards; I didn't rework the already written code. Use at your own risk.
+The esphome code is buggy. When I started setting it up I haven't written a line of c++ for about 8 years. 
+
+Whenever I remembered something that made the code better I only applied it from then onwards; I didn't rework the already written code. 
+
+Use at your own risk.
 ```
 
 </span>
