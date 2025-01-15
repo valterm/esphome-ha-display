@@ -64,7 +64,7 @@ Multiscrape fetching data from BVG's API. It stores both timestamps and minutes-
 
 ## Attribution
 
-* Plants picture provided by [Freepik]("https://www.flaticon.com/free-icons/plant")  
+* Plants picture provided by [Freepik](https://www.flaticon.com/free-icons/plant)
 * BVG Data scraped through @derhuerst's [bvg-rest](https://github.com/derhuerst/bvg-rest)  
 * Weather data scraped from [Open-Meteo](https://open-meteo.com/)
-
+* Case 3D printed from [Thingiverse](https://www.thingiverse.com/thing:3996613)
